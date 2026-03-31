@@ -1,0 +1,3 @@
+Backend:
+Used to generate docker-compose.yml (reviewed and eddited manually to function desirably)
+Used to generate create table statements off of schema manually designed using draw.io
