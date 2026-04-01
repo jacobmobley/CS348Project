@@ -33,5 +33,10 @@ def update_vehicle(
 
 
 def delete_vehicle(db: Session, vehicle: models.Vehicle) -> None:
+    (
+        db.query(models.MaintenanceLog)
+        .filter(models.MaintenanceLog.vin == vehicle.vin)
+        .delete(synchronize_session=False)
+    )
     db.delete(vehicle)
     db.commit()

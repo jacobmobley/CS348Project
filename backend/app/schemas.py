@@ -75,3 +75,32 @@ class MaintenanceLogUpdate(BaseModel):
 class MaintenanceLogRead(MaintenanceLogBase):
     maintenance_id: int
     model_config = ConfigDict(from_attributes=True)
+
+
+class LatestMileageRead(BaseModel):
+    vin: str
+    date: dt_date
+    reported_mileage: int
+
+
+class LatestServiceNameRead(BaseModel):
+    vin: str
+    date: dt_date
+    service_name: str
+
+
+class MileageHistoryRead(BaseModel):
+    vin: str
+    date: dt_date
+    reported_mileage: int
+
+
+class ServiceHistoryRead(BaseModel):
+    vin: str
+    date: dt_date
+    service_name: str
+
+
+class TotalSpentRead(BaseModel):
+    vin: str
+    total_spent: Decimal

@@ -1,8 +1,28 @@
 <section class="mx-auto w-full max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
   <header class="mb-8">
     <div class="space-y-1">
-      <h1 class="text-3xl font-bold tracking-tight text-slate-900">Maintenance Records</h1>
-      <p class="text-sm text-slate-600">Track services and repairs for your vehicles in one place.</p>
+      <h1 class="text-3xl font-bold tracking-tight text-slate-900">Vehicle Maintenance</h1>
+      <p class="text-sm text-slate-600">Manage your vehicles and service history in one place.</p>
+    </div>
+    <div class="mt-5 inline-flex rounded-lg bg-slate-100 p-1">
+      <button
+        type="button"
+        (click)="setTab('service-records')"
+        [class]="activeTab === 'service-records'
+          ? 'rounded-md bg-white px-4 py-2 text-sm font-semibold text-slate-900 shadow-sm'
+          : 'rounded-md px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-900'"
+      >
+        Service Records
+      </button>
+      <button
+        type="button"
+        (click)="setTab('vehicles')"
+        [class]="activeTab === 'vehicles'
+          ? 'rounded-md bg-white px-4 py-2 text-sm font-semibold text-slate-900 shadow-sm'
+          : 'rounded-md px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-900'"
+      >
+        Vehicles
+      </button>
     </div>
   </header>
 
@@ -10,7 +30,7 @@
     <div class="relative w-full sm:max-w-sm">
       <input
         type="text"
-        placeholder="Search records..."
+        [placeholder]="activeTab === 'service-records' ? 'Search service records...' : 'Search vehicles...'"
         class="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-700 placeholder:text-slate-400 focus:border-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-200"
         disabled
       />
@@ -26,9 +46,9 @@
       <button
         type="button"
         class="inline-flex items-center rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
-        disabled
+        (click)="onAddClick()"
       >
-        Add Record
+        {{ activeTab === 'service-records' ? 'Add Log' : 'Add Vehicle' }}
       </button>
     </div>
   </div>
@@ -37,31 +57,644 @@
     <div class="overflow-x-auto">
       <table class="min-w-full divide-y divide-slate-200">
         <thead class="bg-slate-50">
-          <tr>
-            <th class="whitespace-nowrap px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-slate-600">Date</th>
-            <th class="whitespace-nowrap px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-slate-600">Vehicle</th>
-            <th class="whitespace-nowrap px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-slate-600">Service</th>
-            <th class="whitespace-nowrap px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-slate-600">Odometer</th>
-            <th class="whitespace-nowrap px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-slate-600">Cost</th>
-            <th class="whitespace-nowrap px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-slate-600">Notes</th>
-          </tr>
+          @if (activeTab === 'service-records') {
+            <tr>
+              <th class="whitespace-nowrap px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-slate-600">Date</th>
+              <th class="whitespace-nowrap px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-slate-600">Vehicle</th>
+              <th class="whitespace-nowrap px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-slate-600">Service</th>
+              <th class="whitespace-nowrap px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-slate-600">Odometer</th>
+              <th class="whitespace-nowrap px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-slate-600">Cost</th>
+              <th class="whitespace-nowrap px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-slate-600">Notes</th>
+              <th class="sticky right-0 whitespace-nowrap bg-slate-50 px-5 py-3.5 text-right text-xs font-semibold uppercase tracking-wider text-slate-600">Actions</th>
+            </tr>
+          } @else {
+            <tr>
+              <th class="whitespace-nowrap px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-slate-600">Year</th>
+              <th class="whitespace-nowrap px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-slate-600">Make</th>
+              <th class="whitespace-nowrap px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-slate-600">Model</th>
+              <th class="whitespace-nowrap px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-slate-600">VIN</th>
+              <th class="whitespace-nowrap px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-slate-600">Purchase Date</th>
+              <th class="sticky right-0 whitespace-nowrap bg-slate-50 px-5 py-3.5 text-right text-xs font-semibold uppercase tracking-wider text-slate-600">Actions</th>
+            </tr>
+          }
         </thead>
         <tbody class="divide-y divide-slate-100 bg-white">
-          <tr>
-            <td colspan="6" class="px-5 py-14 text-center">
-              <div class="mx-auto flex max-w-sm flex-col items-center gap-2">
-                <div class="rounded-full bg-slate-100 p-3 text-slate-500">
-                  <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 6h6M9 10h6M7 3h10a2 2 0 0 1 2 2v14l-3-2-2 2-2-2-2 2-2-2-3 2V5a2 2 0 0 1 2-2Z"/>
-                  </svg>
-                </div>
-                <p class="text-sm font-medium text-slate-700">No records yet</p>
-                <p class="text-xs text-slate-500">Records you add will appear in this table.</p>
-              </div>
-            </td>
-          </tr>
+          @if (activeTab === 'service-records') {
+            @if (isLoadingLogs) {
+              <tr>
+                <td colspan="8" class="px-5 py-10 text-center text-sm text-slate-500">Loading service records...</td>
+              </tr>
+            } @else if (logLoadError) {
+              <tr>
+                <td colspan="8" class="px-5 py-10 text-center text-sm text-red-600">{{ logLoadError }}</td>
+              </tr>
+            } @else if (maintenanceLogs.length === 0) {
+              <tr>
+                <td colspan="8" class="px-5 py-14 text-center">
+                  <div class="mx-auto flex max-w-sm flex-col items-center gap-2">
+                    <div class="rounded-full bg-slate-100 p-3 text-slate-500">
+                      <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 6h6M9 10h6M7 3h10a2 2 0 0 1 2 2v14l-3-2-2 2-2-2-2 2-2-2-3 2V5a2 2 0 0 1 2-2Z"/>
+                      </svg>
+                    </div>
+                    <p class="text-sm font-medium text-slate-700">No records yet</p>
+                    <p class="text-xs text-slate-500">Service records you add will appear in this table.</p>
+                  </div>
+                </td>
+              </tr>
+            } @else {
+              @for (log of maintenanceLogs; track log.maintenance_id) {
+                <tr class="hover:bg-slate-50/60">
+                  <td class="whitespace-nowrap px-5 py-3 text-sm text-slate-700">{{ log.date }}</td>
+                  <td class="whitespace-nowrap px-5 py-3 text-sm text-slate-700">{{ log.vin }}</td>
+                  <td class="whitespace-nowrap px-5 py-3 text-sm text-slate-700">{{ getServiceTypeName(log.service_type_id) }}</td>
+                  <td class="whitespace-nowrap px-5 py-3 text-sm text-slate-700">{{ log.reported_mileage }}</td>
+                  <td class="whitespace-nowrap px-5 py-3 text-sm text-slate-700">{{ log.cost }}</td>
+                  <td class="px-5 py-3 text-sm text-slate-700">{{ log.notes }}</td>
+                  <td class="sticky right-0 whitespace-nowrap bg-white px-5 py-3 text-right">
+                    <div class="inline-flex items-center gap-1">
+                      <button
+                        type="button"
+                        class="rounded-md p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-700"
+                        aria-label="Generate service record report"
+                        (click)="onGenerateLogReport()"
+                      >
+                        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M14 2H6a2 2 0 0 0-2 2v16l4-2 4 2 4-2 4 2V8z"/>
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M14 2v6h6"/>
+                        </svg>
+                      </button>
+                    <button
+                      type="button"
+                      class="rounded-md p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-700"
+                      aria-label="Edit service record"
+                      (click)="onEditLog(log)"
+                    >
+                      <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 20h9"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4 12.5-12.5Z"/>
+                      </svg>
+                    </button>
+                    <button
+                      type="button"
+                      class="rounded-md p-2 text-red-500 hover:bg-red-50 hover:text-red-700"
+                      aria-label="Delete service record"
+                      (click)="onDeleteLog(log)"
+                      [disabled]="deletingLogIds.has(log.maintenance_id)"
+                    >
+                      <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 6h18"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 6V4h8v2"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 6l-1 14H6L5 6"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10 11v6M14 11v6"/>
+                      </svg>
+                    </button>
+                    </div>
+                  </td>
+                </tr>
+              }
+            }
+          } @else {
+            @if (isLoadingVehicles) {
+              <tr>
+                <td colspan="7" class="px-5 py-10 text-center text-sm text-slate-500">Loading vehicles...</td>
+              </tr>
+            } @else if (vehicleLoadError) {
+              <tr>
+                <td colspan="7" class="px-5 py-10 text-center text-sm text-red-600">{{ vehicleLoadError }}</td>
+              </tr>
+            } @else if (vehicles.length === 0) {
+              <tr>
+                <td colspan="7" class="px-5 py-14 text-center">
+                  <div class="mx-auto flex max-w-sm flex-col items-center gap-2">
+                    <div class="rounded-full bg-slate-100 p-3 text-slate-500">
+                      <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 6h6M9 10h6M7 3h10a2 2 0 0 1 2 2v14l-3-2-2 2-2-2-2 2-2-2-3 2V5a2 2 0 0 1 2-2Z"/>
+                      </svg>
+                    </div>
+                    <p class="text-sm font-medium text-slate-700">No vehicles yet</p>
+                    <p class="text-xs text-slate-500">Vehicles you add will appear in this table.</p>
+                  </div>
+                </td>
+              </tr>
+            } @else {
+              @for (vehicle of vehicles; track vehicle.vin) {
+                <tr class="hover:bg-slate-50/60">
+                  <td class="whitespace-nowrap px-5 py-3 text-sm text-slate-700">{{ vehicle.year }}</td>
+                  <td class="whitespace-nowrap px-5 py-3 text-sm text-slate-700">{{ vehicle.make }}</td>
+                  <td class="whitespace-nowrap px-5 py-3 text-sm text-slate-700">{{ vehicle.model }}</td>
+                  <td class="whitespace-nowrap px-5 py-3 text-sm text-slate-700">{{ vehicle.vin }}</td>
+                  <td class="whitespace-nowrap px-5 py-3 text-sm text-slate-700">{{ vehicle.purchase_date }}</td>
+                  <td class="sticky right-0 whitespace-nowrap bg-white px-5 py-3 text-right">
+                    <div class="inline-flex items-center gap-1">
+                      <button
+                        type="button"
+                        class="rounded-md p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-700"
+                        aria-label="Generate vehicle report"
+                        (click)="onGenerateVehicleReport(vehicle)"
+                      >
+                        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M14 2H6a2 2 0 0 0-2 2v16l4-2 4 2 4-2 4 2V8z"/>
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M14 2v6h6"/>
+                        </svg>
+                      </button>
+                    <button
+                      type="button"
+                      class="rounded-md p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-700"
+                      aria-label="Edit vehicle"
+                      (click)="onEditVehicle(vehicle)"
+                    >
+                      <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 20h9"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4 12.5-12.5Z"/>
+                      </svg>
+                    </button>
+                    <button
+                      type="button"
+                      class="rounded-md p-2 text-red-500 hover:bg-red-50 hover:text-red-700"
+                      aria-label="Delete vehicle"
+                      (click)="onDeleteVehicle(vehicle)"
+                      [disabled]="deletingVehicleVins.has(vehicle.vin)"
+                    >
+                      <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 6h18"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 6V4h8v2"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 6l-1 14H6L5 6"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10 11v6M14 11v6"/>
+                      </svg>
+                    </button>
+                    </div>
+                  </td>
+                </tr>
+              }
+            }
+          }
         </tbody>
       </table>
     </div>
   </div>
 </section>
+
+@if (showVehicleModal) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4">
+    <div class="w-full max-w-lg rounded-xl bg-white shadow-xl">
+      <div class="flex items-center justify-between border-b border-slate-200 px-5 py-4">
+        <h2 class="text-lg font-semibold text-slate-900">
+          {{ editingVehicleVin ? 'Edit Vehicle' : 'Add Vehicle' }}
+        </h2>
+        <button type="button" class="text-slate-500 hover:text-slate-700" (click)="closeVehicleModal()">✕</button>
+      </div>
+
+      <form class="space-y-4 px-5 py-4" (ngSubmit)="submitVehicleForm()">
+        <div>
+          <label class="mb-1 block text-sm font-medium text-slate-700">VIN</label>
+          <input
+            type="text"
+            maxlength="17"
+            [(ngModel)]="vehicleForm.vin"
+            name="vehicleVin"
+            class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-200"
+            [disabled]="isSavingVehicle || !!editingVehicleVin"
+            required
+          />
+        </div>
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div>
+            <label class="mb-1 block text-sm font-medium text-slate-700">Make</label>
+            <input
+              type="text"
+              [(ngModel)]="vehicleForm.make"
+              name="vehicleMake"
+              class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-200"
+              required
+            />
+          </div>
+          <div>
+            <label class="mb-1 block text-sm font-medium text-slate-700">Model</label>
+            <input
+              type="text"
+              [(ngModel)]="vehicleForm.model"
+              name="vehicleModel"
+              class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-200"
+              required
+            />
+          </div>
+        </div>
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div>
+            <label class="mb-1 block text-sm font-medium text-slate-700">Year</label>
+            <input
+              type="number"
+              [(ngModel)]="vehicleForm.year"
+              name="vehicleYear"
+              class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-200"
+              required
+            />
+          </div>
+          <div>
+            <label class="mb-1 block text-sm font-medium text-slate-700">Purchase Date</label>
+            <input
+              type="date"
+              [(ngModel)]="vehicleForm.purchase_date"
+              name="vehiclePurchaseDate"
+              class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-200"
+              required
+            />
+          </div>
+        </div>
+        @if (vehicleSubmitError) {
+          <p class="text-sm text-red-600">{{ vehicleSubmitError }}</p>
+        }
+
+        <div class="flex items-center justify-end gap-2 border-t border-slate-200 pt-4">
+          <button
+            type="button"
+            class="rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+            (click)="closeVehicleModal()"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            class="rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+            [disabled]="isSavingVehicle"
+          >
+            {{
+              isSavingVehicle
+                ? 'Saving...'
+                : editingVehicleVin
+                  ? 'Update Vehicle'
+                  : 'Save Vehicle'
+            }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+@if (showReportModal) {
+  <div class="fixed inset-0 z-[70] flex items-center justify-center bg-slate-900/50 p-4">
+    <div class="w-full max-w-lg rounded-xl bg-white shadow-xl">
+      <div class="flex items-center justify-between border-b border-slate-200 px-5 py-4">
+        <h2 class="text-lg font-semibold text-slate-900">{{ reportModalTitle }}</h2>
+        <button type="button" class="text-slate-500 hover:text-slate-700" (click)="closeReportModal()">✕</button>
+      </div>
+
+      <div class="px-5 py-6">
+        @if (reportModalType === 'vehicle') {
+          <div class="space-y-3">
+            <label class="flex items-center gap-3 text-sm text-slate-700">
+              <input type="checkbox" [(ngModel)]="vehicleReportOptions.includeVehicleYear" name="reportIncludeVehicleYear" class="h-4 w-4 rounded border-slate-300 text-slate-900 focus:ring-slate-300" />
+              <span>Year</span>
+            </label>
+            <label class="flex items-center gap-3 text-sm text-slate-700">
+              <input type="checkbox" [(ngModel)]="vehicleReportOptions.includeVehicleMake" name="reportIncludeVehicleMake" class="h-4 w-4 rounded border-slate-300 text-slate-900 focus:ring-slate-300" />
+              <span>Make</span>
+            </label>
+            <label class="flex items-center gap-3 text-sm text-slate-700">
+              <input type="checkbox" [(ngModel)]="vehicleReportOptions.includeVehicleModel" name="reportIncludeVehicleModel" class="h-4 w-4 rounded border-slate-300 text-slate-900 focus:ring-slate-300" />
+              <span>Model</span>
+            </label>
+            <label class="flex items-center gap-3 text-sm text-slate-700">
+              <input type="checkbox" [(ngModel)]="vehicleReportOptions.includeVehicleVin" name="reportIncludeVehicleVin" class="h-4 w-4 rounded border-slate-300 text-slate-900 focus:ring-slate-300" />
+              <span>VIN</span>
+            </label>
+            <label class="flex items-center gap-3 text-sm text-slate-700">
+              <input type="checkbox" [(ngModel)]="vehicleReportOptions.includeVehiclePurchaseDate" name="reportIncludeVehiclePurchaseDate" class="h-4 w-4 rounded border-slate-300 text-slate-900 focus:ring-slate-300" />
+              <span>Purchase Date</span>
+            </label>
+            <label class="flex items-center gap-3 text-sm text-slate-700">
+              <input type="checkbox" [(ngModel)]="vehicleReportOptions.includeMostRecentMileage" name="reportIncludeMostRecentMileage" class="h-4 w-4 rounded border-slate-300 text-slate-900 focus:ring-slate-300" />
+              <span>Most recent mileage</span>
+            </label>
+            <label class="flex items-center gap-3 text-sm text-slate-700">
+              <input type="checkbox" [(ngModel)]="vehicleReportOptions.includeMostRecentService" name="reportIncludeMostRecentService" class="h-4 w-4 rounded border-slate-300 text-slate-900 focus:ring-slate-300" />
+              <span>Most recent service</span>
+            </label>
+            <label class="flex items-center gap-3 text-sm text-slate-700">
+              <input type="checkbox" [(ngModel)]="vehicleReportOptions.includeAllServices" name="reportIncludeAllServices" class="h-4 w-4 rounded border-slate-300 text-slate-900 focus:ring-slate-300" />
+              <span>All services</span>
+            </label>
+            <label class="flex items-center gap-3 text-sm text-slate-700">
+              <input type="checkbox" [(ngModel)]="vehicleReportOptions.includeMileageGraph" name="reportIncludeMileageGraph" class="h-4 w-4 rounded border-slate-300 text-slate-900 focus:ring-slate-300" />
+              <span>All mileage (graph form)</span>
+            </label>
+            <label class="flex items-center gap-3 text-sm text-slate-700">
+              <input type="checkbox" [(ngModel)]="vehicleReportOptions.includeTotalMoneySpent" name="reportIncludeTotalMoneySpent" class="h-4 w-4 rounded border-slate-300 text-slate-900 focus:ring-slate-300" />
+              <span>Total money spent</span>
+            </label>
+          </div>
+        } @else {
+          <p class="text-sm text-slate-600">Service report options will be added here.</p>
+        }
+      </div>
+
+      <div class="flex items-center justify-end gap-2 border-t border-slate-200 px-5 py-4">
+        <button
+          type="button"
+          class="rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+          (click)="closeReportModal()"
+        >
+          Cancel
+        </button>
+        <button
+          type="button"
+          class="rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800"
+          (click)="submitGenerateReport()"
+        >
+          Generate Report
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+@if (showVehicleReportPreviewModal) {
+  <div class="fixed inset-0 z-[75] flex items-center justify-center bg-slate-900/50 p-4">
+    <div class="w-full max-w-3xl rounded-xl bg-white shadow-xl">
+      <div class="flex items-center justify-between border-b border-slate-200 px-5 py-4">
+        <h2 class="text-lg font-semibold text-slate-900">Vehicle Report</h2>
+        <button type="button" class="text-slate-500 hover:text-slate-700" (click)="closeVehicleReportPreviewModal()">✕</button>
+      </div>
+
+      <div class="max-h-[70vh] overflow-y-auto px-5 py-6">
+        @if (vehicleReportSections.length === 0) {
+          <p class="text-sm text-slate-600">No sections selected.</p>
+        } @else {
+          <div class="space-y-4">
+            @for (section of vehicleReportSections; track section.id) {
+              <section class="rounded-lg border border-slate-200 bg-slate-50/50 p-4">
+                <h3 class="text-sm font-semibold text-slate-800">{{ section.title }}</h3>
+                <div class="mt-3 min-h-16 rounded-md border border-dashed border-slate-300 bg-white p-3">
+                  @if (section.isLoading) {
+                    <p class="text-xs text-slate-500">Loading...</p>
+                  } @else if (section.error) {
+                    <p class="text-xs text-red-600">{{ section.error }}</p>
+                  } @else if (section.id === 'mileage-graph') {
+                    @if (section.graphData && section.graphData.length > 1) {
+                      <div class="space-y-2">
+                        <svg viewBox="0 0 640 240" class="h-52 w-full">
+                          <line x1="44" y1="16" x2="44" y2="212" stroke="#cbd5e1" stroke-width="1" />
+                          <line x1="44" y1="212" x2="624" y2="212" stroke="#cbd5e1" stroke-width="1" />
+                          <polyline
+                            [attr.points]="getMileageGraphPoints(section)"
+                            fill="none"
+                            stroke="#0f172a"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                          />
+                        </svg>
+                        <div class="flex items-center justify-between text-xs text-slate-500">
+                          <span>{{ getMileageGraphStartDate(section) }}</span>
+                          <span>{{ getMileageGraphEndDate(section) }}</span>
+                        </div>
+                        <div class="flex items-center justify-between text-xs text-slate-500">
+                          <span>Min: {{ getMileageGraphMin(section) }}</span>
+                          <span>Max: {{ getMileageGraphMax(section) }}</span>
+                        </div>
+                      </div>
+                    } @else if (section.graphData && section.graphData.length === 1) {
+                      <p class="text-xs text-slate-600">
+                        Only one mileage point available ({{ section.graphData[0].date }}: {{ section.graphData[0].reported_mileage }}).
+                        Add more logs to render a graph.
+                      </p>
+                    } @else {
+                      <p class="text-xs text-slate-500">No mileage history found.</p>
+                    }
+                  } @else {
+                    @for (line of section.lines; track line) {
+                      <p class="text-xs text-slate-600">{{ line }}</p>
+                    }
+                  }
+                </div>
+              </section>
+            }
+          </div>
+        }
+      </div>
+
+      <div class="flex items-center justify-end gap-2 border-t border-slate-200 px-5 py-4">
+        <button
+          type="button"
+          class="rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+          (click)="closeVehicleReportPreviewModal()"
+        >
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+@if (showLogModal) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4">
+    <div class="w-full max-w-xl rounded-xl bg-white shadow-xl">
+      <div class="flex items-center justify-between border-b border-slate-200 px-5 py-4">
+        <h2 class="text-lg font-semibold text-slate-900">
+          {{ editingLogId ? 'Edit Service Log' : 'Add Service Log' }}
+        </h2>
+        <button type="button" class="text-slate-500 hover:text-slate-700" (click)="closeLogModal()">✕</button>
+      </div>
+
+      <form class="space-y-4 px-5 py-4" (ngSubmit)="submitLogForm()">
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div>
+            <label class="mb-1 block text-sm font-medium text-slate-700">Date</label>
+            <input
+              type="date"
+              [(ngModel)]="logForm.date"
+              name="logDate"
+              class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-200"
+              required
+            />
+          </div>
+          <div>
+            <label class="mb-1 block text-sm font-medium text-slate-700">Reported Mileage</label>
+            <input
+              type="number"
+              [(ngModel)]="logForm.reported_mileage"
+              name="logMileage"
+              class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-200"
+              required
+            />
+          </div>
+        </div>
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div>
+            <label class="mb-1 block text-sm font-medium text-slate-700">Cost</label>
+            <input
+              type="number"
+              step="0.01"
+              [(ngModel)]="logForm.cost"
+              name="logCost"
+              class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-200"
+              required
+            />
+          </div>
+          <div>
+            <label class="mb-1 block text-sm font-medium text-slate-700">Service Type</label>
+            <div class="relative">
+              <input
+                type="text"
+                [(ngModel)]="serviceTypeSearch"
+                name="logServiceTypeSearch"
+                placeholder="Search service type..."
+                class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-200"
+                (focus)="showServiceTypeDropdown = true"
+                (input)="onServiceTypeSearchChange(serviceTypeSearch)"
+                required
+              />
+              <input type="hidden" [(ngModel)]="logForm.service_type_id" name="logServiceTypeId" />
+
+              @if (showServiceTypeDropdown) {
+                <div class="absolute z-20 mt-1 max-h-56 w-full overflow-y-auto rounded-lg border border-slate-200 bg-white shadow-lg">
+                  @if (isLoadingServiceTypes) {
+                    <p class="px-3 py-2 text-sm text-slate-500">Loading service types...</p>
+                  } @else if (serviceTypeLoadError) {
+                    <p class="px-3 py-2 text-sm text-red-600">{{ serviceTypeLoadError }}</p>
+                  } @else if (filteredServiceTypeOptions.length === 0) {
+                    <p class="px-3 py-2 text-sm text-slate-500">No matching service types.</p>
+                  } @else {
+                    @for (serviceType of filteredServiceTypeOptions; track serviceType.id) {
+                      <button
+                        type="button"
+                        class="block w-full border-b border-slate-100 px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-50"
+                        (click)="selectServiceType(serviceType)"
+                      >
+                        {{ serviceType.name }} <span class="text-slate-400">(ID: {{ serviceType.id }})</span>
+                      </button>
+                    }
+                  }
+
+                  <button
+                    type="button"
+                    class="block w-full px-3 py-2 text-left text-sm font-medium text-blue-700 hover:bg-blue-50"
+                    (click)="onAddServiceTypeClick()"
+                  >
+                    + Add service type
+                  </button>
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+        <div>
+          <label class="mb-1 block text-sm font-medium text-slate-700">Vehicle VIN</label>
+          <input
+            type="text"
+            maxlength="17"
+            [(ngModel)]="logForm.vin"
+            name="logVin"
+            class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-200"
+            required
+          />
+        </div>
+        <div>
+          <label class="mb-1 block text-sm font-medium text-slate-700">Notes</label>
+          <textarea
+            rows="3"
+            [(ngModel)]="logForm.notes"
+            name="logNotes"
+            class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-200"
+            required
+          ></textarea>
+        </div>
+        @if (logSubmitError) {
+          <p class="text-sm text-red-600">{{ logSubmitError }}</p>
+        }
+
+        <div class="flex items-center justify-end gap-2 border-t border-slate-200 pt-4">
+          <button
+            type="button"
+            class="rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+            (click)="closeLogModal()"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            class="rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+            [disabled]="isSavingLog"
+          >
+            {{
+              isSavingLog
+                ? 'Saving...'
+                : editingLogId
+                  ? 'Update Log'
+                  : 'Save Log'
+            }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+@if (showServiceTypeModal) {
+  <div class="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/50 p-4">
+    <div class="w-full max-w-lg rounded-xl bg-white shadow-xl">
+      <div class="flex items-center justify-between border-b border-slate-200 px-5 py-4">
+        <h2 class="text-lg font-semibold text-slate-900">Add Service Type</h2>
+        <button type="button" class="text-slate-500 hover:text-slate-700" (click)="closeServiceTypeModal()">✕</button>
+      </div>
+
+      <form class="space-y-4 px-5 py-4" (ngSubmit)="submitServiceTypeForm()">
+        <div>
+          <label class="mb-1 block text-sm font-medium text-slate-700">Service Type Name</label>
+          <input
+            type="text"
+            [(ngModel)]="serviceTypeForm.name"
+            name="serviceTypeName"
+            class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-200"
+            required
+          />
+        </div>
+
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div>
+            <label class="mb-1 block text-sm font-medium text-slate-700">Service Interval (Months)</label>
+            <input
+              type="number"
+              min="0"
+              [(ngModel)]="serviceTypeForm.service_interval_months"
+              name="serviceIntervalMonths"
+              class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-200"
+            />
+          </div>
+          <div>
+            <label class="mb-1 block text-sm font-medium text-slate-700">Service Interval (Miles)</label>
+            <input
+              type="number"
+              min="0"
+              [(ngModel)]="serviceTypeForm.service_interval_miles"
+              name="serviceIntervalMiles"
+              class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-200"
+            />
+          </div>
+        </div>
+        @if (serviceTypeSubmitError) {
+          <p class="text-sm text-red-600">{{ serviceTypeSubmitError }}</p>
+        }
+
+        <div class="flex items-center justify-end gap-2 border-t border-slate-200 pt-4">
+          <button
+            type="button"
+            class="rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+            (click)="closeServiceTypeModal()"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            class="rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+            [disabled]="isSavingServiceType"
+          >
+            {{ isSavingServiceType ? 'Saving...' : 'Save Service Type' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}

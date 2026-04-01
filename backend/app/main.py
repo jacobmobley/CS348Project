@@ -1,10 +1,22 @@
 from fastapi import Depends, FastAPI, HTTPException, Response, status
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 
 from . import crud_maintenance_logs, crud_service_types, crud_vehicles, schemas
 from .database import Base, engine, get_db
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:4200",
+        "http://127.0.0.1:4200",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.on_event("startup")
@@ -131,6 +143,43 @@ def list_maintenance_logs(db: Session = Depends(get_db)):
     return crud_maintenance_logs.get_maintenance_logs(db)
 
 
+@app.get(
+    "/maintenance-logs/history/mileage/{vin}", response_model=list[schemas.MileageHistoryRead]
+)
+def list_mileage_history(vin: str, db: Session = Depends(get_db)):
+    if not crud_vehicles.get_vehicle(db, vin):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Vehicle not found.")
+
+    history = crud_maintenance_logs.get_mileage_history(db, vin)
+    return [
+        {"vin": log.vin, "date": log.date, "reported_mileage": log.reported_mileage}
+        for log in history
+    ]
+
+
+@app.get(
+    "/maintenance-logs/history/service/{vin}", response_model=list[schemas.ServiceHistoryRead]
+)
+def list_service_history(vin: str, db: Session = Depends(get_db)):
+    if not crud_vehicles.get_vehicle(db, vin):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Vehicle not found.")
+
+    history = crud_maintenance_logs.get_service_history(db, vin)
+    return [
+        {"vin": log.vin, "date": log.date, "service_name": service_name}
+        for log, service_name in history
+    ]
+
+
+@app.get("/maintenance-logs/total-spent/{vin}", response_model=schemas.TotalSpentRead)
+def get_total_spent_for_vin(vin: str, db: Session = Depends(get_db)):
+    if not crud_vehicles.get_vehicle(db, vin):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Vehicle not found.")
+
+    total_spent = crud_maintenance_logs.get_total_spent_by_vin(db, vin)
+    return {"vin": vin, "total_spent": total_spent}
+
+
 @app.get("/maintenance-logs/{maintenance_id}", response_model=schemas.MaintenanceLogRead)
 def get_maintenance_log(maintenance_id: int, db: Session = Depends(get_db)):
     maintenance_log = crud_maintenance_logs.get_maintenance_log(db, maintenance_id)
@@ -139,6 +188,40 @@ def get_maintenance_log(maintenance_id: int, db: Session = Depends(get_db)):
             status_code=status.HTTP_404_NOT_FOUND, detail="Maintenance log not found."
         )
     return maintenance_log
+
+
+@app.get("/maintenance-logs/latest-mileage/{vin}", response_model=schemas.LatestMileageRead)
+def get_latest_mileage_for_vin(vin: str, db: Session = Depends(get_db)):
+    if not crud_vehicles.get_vehicle(db, vin):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Vehicle not found.")
+
+    latest_log = crud_maintenance_logs.get_latest_maintenance_log_by_vin(db, vin)
+    if not latest_log:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No maintenance logs found for this VIN.",
+        )
+
+    return {"vin": vin, "date": latest_log.date, "reported_mileage": latest_log.reported_mileage}
+
+
+@app.get(
+    "/maintenance-logs/latest-service-name/{vin}",
+    response_model=schemas.LatestServiceNameRead,
+)
+def get_latest_service_name_for_vin(vin: str, db: Session = Depends(get_db)):
+    if not crud_vehicles.get_vehicle(db, vin):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Vehicle not found.")
+
+    latest_service = crud_maintenance_logs.get_latest_service_name_by_vin(db, vin)
+    if not latest_service:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No maintenance logs found for this VIN.",
+        )
+
+    service_name, service_date = latest_service
+    return {"vin": vin, "date": service_date, "service_name": service_name}
 
 
 @app.put("/maintenance-logs/{maintenance_id}", response_model=schemas.MaintenanceLogRead)
