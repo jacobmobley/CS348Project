@@ -3,11 +3,11 @@ services:
     image: postgres:16
     container_name: cs348-postgres
     environment:
-      POSTGRES_USER: app
-      POSTGRES_PASSWORD: app_pw
-      POSTGRES_DB: app_db
+      POSTGRES_USER: ${POSTGRES_USER:-app}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-app_pw}
+      POSTGRES_DB: ${POSTGRES_DB:-app_db}
     ports:
-      - "5432:5432"
+      - "${POSTGRES_PORT:-5432}:5432"
     volumes:
       - cs348_pgdata:/var/lib/postgresql/data
       - ./create_tables.sql:/docker-entrypoint-initdb.d/001_create_tables.sql:ro
