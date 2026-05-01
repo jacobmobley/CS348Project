@@ -27,6 +27,11 @@ Frontend API base URL:
 - Development uses `frontend/src/environments/environment.development.ts`
 - Production uses `frontend/src/environments/environment.ts`
 
+## Production Docker behavior
+
+When you run `docker compose -f docker-compose.prod.yml up -d --build`, a `seed` service
+now runs `backend/seed.py` automatically before the backend starts.
+
 ## Run the database (Postgres with Docker)
 
 ```bash
