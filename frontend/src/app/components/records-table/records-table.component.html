@@ -31,8 +31,10 @@
       <input
         type="text"
         [placeholder]="activeTab === 'service-records' ? 'Search service records...' : 'Search vehicles...'"
+        [ngModel]="searchQuery"
+        [ngModelOptions]="{ standalone: true }"
+        (ngModelChange)="onSearchQueryChange($event)"
         class="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-700 placeholder:text-slate-400 focus:border-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-200"
-        disabled
       />
     </div>
     <div class="flex items-center gap-2">

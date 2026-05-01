@@ -1,5 +1,26 @@
 # Vehicle Maintenance App
 
+## Run the database (Postgres with Docker)
+
+```bash
+cd backend/db/init
+docker compose up -d
+```
+
+To stop it later:
+
+```bash
+docker compose down
+```
+
+Database details:
+
+- Host: `127.0.0.1`
+- Port: `5432`
+- Database: `app_db`
+- User: `app`
+- Password: `app_pw`
+
 ## Run the backend (FastAPI)
 
 ```bash

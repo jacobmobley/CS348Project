@@ -1,3 +1,4 @@
+from sqlalchemy import String, cast, or_
 from sqlalchemy.orm import Session
 
 from . import models, schemas
@@ -9,6 +10,20 @@ def get_vehicles(db: Session) -> list[models.Vehicle]:
 
 def get_vehicle(db: Session, vin: str) -> models.Vehicle | None:
     return db.query(models.Vehicle).filter(models.Vehicle.vin == vin).first()
+
+
+def search_vehicles(db: Session, query: str) -> list[models.Vehicle]:
+    normalized_query = query.strip()
+    if not normalized_query:
+        return get_vehicles(db)
+
+    filters = [
+        models.Vehicle.vin.ilike(f"%{normalized_query}%"),
+        models.Vehicle.make.ilike(f"%{normalized_query}%"),
+        models.Vehicle.model.ilike(f"%{normalized_query}%"),
+        cast(models.Vehicle.year, String).ilike(f"%{normalized_query}%"),
+    ]
+    return db.query(models.Vehicle).filter(or_(*filters)).all()
 
 
 def create_vehicle(db: Session, vehicle_in: schemas.VehicleCreate) -> models.Vehicle:

@@ -35,3 +35,6 @@ CREATE INDEX IF NOT EXISTS idx_maintenance_logs_vin
 CREATE INDEX IF NOT EXISTS idx_maintenance_logs_service_type_id
   ON maintenance_logs(service_type_id);
 
+CREATE INDEX IF NOT EXISTS idx_maintenance_logs_vin_date_maint_desc
+  ON maintenance_logs (vin, date DESC, maintenance_id DESC);
+

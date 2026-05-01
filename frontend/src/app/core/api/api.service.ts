@@ -25,6 +25,12 @@ export class ApiService {
     return this.http.get<Vehicle[]>(`${API_BASE_URL}/vehicles`);
   }
 
+  searchVehicles(query: string): Observable<Vehicle[]> {
+    return this.http.get<Vehicle[]>(`${API_BASE_URL}/vehicles/search`, {
+      params: { q: query }
+    });
+  }
+
   createVehicle(payload: VehicleCreate): Observable<Vehicle> {
     return this.http.post<Vehicle>(`${API_BASE_URL}/vehicles`, payload);
   }
@@ -47,6 +53,12 @@ export class ApiService {
 
   getMaintenanceLogs(): Observable<MaintenanceLog[]> {
     return this.http.get<MaintenanceLog[]>(`${API_BASE_URL}/maintenance-logs`);
+  }
+
+  searchMaintenanceLogs(query: string): Observable<MaintenanceLog[]> {
+    return this.http.get<MaintenanceLog[]>(`${API_BASE_URL}/maintenance-logs/search`, {
+      params: { q: query }
+    });
   }
 
   createMaintenanceLog(payload: MaintenanceLogCreate): Observable<MaintenanceLog> {

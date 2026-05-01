@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ApiService } from '../../core/api/api.service';
@@ -29,7 +29,7 @@ type VehicleReportSection = {
   templateUrl: './records-table.component.html',
   styleUrl: './records-table.component.scss'
 })
-export class RecordsTableComponent implements OnInit {
+export class RecordsTableComponent implements OnInit, OnDestroy {
   private readonly apiService = inject(ApiService);
 
   activeTab: RecordsTab = 'vehicles';
@@ -58,7 +58,9 @@ export class RecordsTableComponent implements OnInit {
     includeTotalMoneySpent: true
   };
   serviceTypeSearch = '';
+  searchQuery = '';
   serviceTypeOptions: ServiceTypeOption[] = [];
+  private searchDebounceTimer: ReturnType<typeof setTimeout> | null = null;
 
   vehicleForm = {
     vin: '',
@@ -106,8 +108,28 @@ export class RecordsTableComponent implements OnInit {
     this.loadServiceTypes();
   }
 
+  ngOnDestroy(): void {
+    if (this.searchDebounceTimer) {
+      clearTimeout(this.searchDebounceTimer);
+      this.searchDebounceTimer = null;
+    }
+  }
+
   setTab(tab: RecordsTab): void {
     this.activeTab = tab;
+    this.refreshActiveTabDataByQuery();
+  }
+
+  onSearchQueryChange(query: string): void {
+    this.searchQuery = query;
+
+    if (this.searchDebounceTimer) {
+      clearTimeout(this.searchDebounceTimer);
+    }
+
+    this.searchDebounceTimer = setTimeout(() => {
+      this.refreshActiveTabDataByQuery();
+    }, 300);
   }
 
   onAddClick(): void {
@@ -450,10 +472,18 @@ export class RecordsTableComponent implements OnInit {
   }
 
   private loadVehicles(): void {
+    this.loadVehiclesByQuery(this.searchQuery.trim());
+  }
+
+  private loadVehiclesByQuery(query: string): void {
     this.isLoadingVehicles = true;
     this.vehicleLoadError = '';
 
-    this.apiService.getVehicles().subscribe({
+    const request$ = query
+      ? this.apiService.searchVehicles(query)
+      : this.apiService.getVehicles();
+
+    request$.subscribe({
       next: (vehicles) => {
         this.vehicles = vehicles;
         this.isLoadingVehicles = false;
@@ -466,10 +496,18 @@ export class RecordsTableComponent implements OnInit {
   }
 
   private loadMaintenanceLogs(): void {
+    this.loadMaintenanceLogsByQuery(this.searchQuery.trim());
+  }
+
+  private loadMaintenanceLogsByQuery(query: string): void {
     this.isLoadingLogs = true;
     this.logLoadError = '';
 
-    this.apiService.getMaintenanceLogs().subscribe({
+    const request$ = query
+      ? this.apiService.searchMaintenanceLogs(query)
+      : this.apiService.getMaintenanceLogs();
+
+    request$.subscribe({
       next: (logs) => {
         this.maintenanceLogs = logs;
         this.isLoadingLogs = false;
@@ -498,6 +536,16 @@ export class RecordsTableComponent implements OnInit {
         this.isLoadingServiceTypes = false;
       }
     });
+  }
+
+  private refreshActiveTabDataByQuery(): void {
+    const query = this.searchQuery.trim();
+    if (this.activeTab === 'vehicles') {
+      this.loadVehiclesByQuery(query);
+      return;
+    }
+
+    this.loadMaintenanceLogsByQuery(query);
   }
 
   private getApiErrorMessage(error: HttpErrorResponse): string | null {

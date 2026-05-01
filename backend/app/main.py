@@ -1,4 +1,4 @@
-from fastapi import Depends, FastAPI, HTTPException, Response, status
+from fastapi import Depends, FastAPI, HTTPException, Query, Response, status
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 
@@ -43,6 +43,14 @@ def create_vehicle(vehicle: schemas.VehicleCreate, db: Session = Depends(get_db)
 @app.get("/vehicles", response_model=list[schemas.VehicleRead])
 def list_vehicles(db: Session = Depends(get_db)):
     return crud_vehicles.get_vehicles(db)
+
+
+@app.get("/vehicles/search", response_model=list[schemas.VehicleRead])
+def search_vehicles(
+    q: str = Query(..., min_length=1, description="Search text for VIN, make, model, or year"),
+    db: Session = Depends(get_db),
+):
+    return crud_vehicles.search_vehicles(db, q)
 
 
 @app.get("/vehicles/{vin}", response_model=schemas.VehicleRead)
@@ -141,6 +149,16 @@ def create_maintenance_log(
 @app.get("/maintenance-logs", response_model=list[schemas.MaintenanceLogRead])
 def list_maintenance_logs(db: Session = Depends(get_db)):
     return crud_maintenance_logs.get_maintenance_logs(db)
+
+
+@app.get("/maintenance-logs/search", response_model=list[schemas.MaintenanceLogRead])
+def search_maintenance_logs(
+    q: str = Query(
+        ..., min_length=1, description="Search text for VIN, notes, or service type name"
+    ),
+    db: Session = Depends(get_db),
+):
+    return crud_maintenance_logs.search_maintenance_logs(db, q)
 
 
 @app.get(

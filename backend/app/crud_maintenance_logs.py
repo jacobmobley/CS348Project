@@ -1,6 +1,6 @@
 from datetime import date as dt_date
 
-from sqlalchemy import func
+from sqlalchemy import func, or_
 from sqlalchemy.orm import Session
 
 from . import models, schemas
@@ -15,6 +15,29 @@ def get_maintenance_log(db: Session, maintenance_id: int) -> models.MaintenanceL
         db.query(models.MaintenanceLog)
         .filter(models.MaintenanceLog.maintenance_id == maintenance_id)
         .first()
+    )
+
+
+def search_maintenance_logs(db: Session, query: str) -> list[models.MaintenanceLog]:
+    normalized_query = query.strip()
+    if not normalized_query:
+        return get_maintenance_logs(db)
+
+    return (
+        db.query(models.MaintenanceLog)
+        .join(
+            models.ServiceType,
+            models.ServiceType.service_type_id == models.MaintenanceLog.service_type_id,
+        )
+        .filter(
+            or_(
+                models.MaintenanceLog.vin.ilike(f"%{normalized_query}%"),
+                models.MaintenanceLog.notes.ilike(f"%{normalized_query}%"),
+                models.ServiceType.name.ilike(f"%{normalized_query}%"),
+            )
+        )
+        .order_by(models.MaintenanceLog.date.desc(), models.MaintenanceLog.maintenance_id.desc())
+        .all()
     )
 
 
